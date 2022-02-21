@@ -145,6 +145,7 @@ def scoreboard():
     file = open("scoreboard.csv", "r")
     reader = csv.reader(file)
     result = list(reader)
+    file.close()
 
     return f"scoreboard <br> {result}"
 
