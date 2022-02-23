@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>scoreboard</title>
+</head>
+<body>
+<ul>
+    {% for score in scoreboard %}
+        <li>{{ score }}</li>
+    {% endfor %}
+</ul>
+
+<p>if you like it you can leave your opinion about this game</p><br>
+<form action="/scoreboard.html" method="POST">
+    <label for="textarea">Whrite comment</label>
+    <input type="textarea" name="comments"></textarea>
+
+
+    <input type="submit" value="Send">
+</form>
+
+</body>
+</html>

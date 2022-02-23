@@ -1,6 +1,8 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 import random
 import csv
+import datetime
+
 
 app = Flask(__name__)
 
@@ -16,14 +18,33 @@ HELLO_HTML = """
 </head>
 <body>
 <h1>GEME 2001</h1>
-<p1>hello player, let's start having fun</p1>
-<form action="" method="POST">
-    <input type="hidden" name="gemer_point" value="{}">
-    <input type="hidden" name="komputer_point" value="{}">
-    <input type="hidden" name="x1" value="{}">
-    <input type="hidden" name="x2" value="{}">
-    <input type="submit" value="GO">
+<p>hello player, let's start having fun</p><br>
+<p>Choose type of your game</p>
+<a href="/geme_standard">GEME STANDARD</a><br>
+<a href="/geme_type_dice">GEME WITH CHOISE OF DICE</a><br>
+</body>
+</html>
+"""
 
+STANDARD_HTML = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Standard</title>
+</head>
+<body>
+<h1>GEME 2001 STANDARD</h1>
+<p>gamer point : {gemer_point_w}</p>
+<p>komputer point : {komputer_point_w}</p><br>
+<p>if you a ready to throw a dice push button</p>
+
+<form action="/geme_standard" method="POST">
+    <label>
+    <input type="submit" value="GAME">
+    <input type="hidden" name="gemer_point" value="{gemer_point}">
+    <input type="hidden" name="komputer_point" value="{komputer_point}">
+    </label>
 </form>
 
 </body>
@@ -44,7 +65,7 @@ GEME_HTML = """
 <br>
 
 
-<form action="" method="POST">
+<form action="/geme_type_dice" method="POST">
     <label>Choose type of dice
     <select name="geme_dice1"> 
         <option value="6">6</option>
@@ -95,15 +116,18 @@ FINISH_HTML = """
 <h1>finish of game</h1>
 <p1>gamer point : {gemer_point}</p1>
 <p2>komputer point : {komputer_point}</p2>
-<a href="/scoreboard">scoreboard</a>
+<a href="/scoreboard">scoreboard</a><br>
 
 </body>
 </html>
 """
 
+@app.route("/")
+def index():
+    return HELLO_HTML
 
-@app.route("/", methods=['GET', 'POST'])
-def geme():
+@app.route("/geme_type_dice", methods=['GET', 'POST'])
+def geme_type_dice():
     if request.method == 'POST':
         komputer_point = int(request.form.get("komputer_point"))
         gemer_point = int(request.form.get("gemer_point"))
@@ -126,9 +150,10 @@ def geme():
         else:
             gemer_point += y
         if komputer_point > 2001 or gemer_point > 2001:
+            day = datetime.datetime.now().strftime("%d.%m.%Y")
             file = open("scoreboard.csv", "a")
             writer = csv.writer(file)
-            writer.writerow((f"gemer = {gemer_point}", f"komputer = {komputer_point}"))
+            writer.writerow((f"gemer = {gemer_point}", f"komputer = {komputer_point}", f"Date : {day}"))
             file.close()
             return FINISH_HTML.format(gemer_point=gemer_point, komputer_point=komputer_point)
 
@@ -138,16 +163,44 @@ def geme():
         return GEME_HTML.format(gemer_point=0, komputer_point=0, x1=6, x2=6, gemer_point_w=0, komputer_point_w=0, y=0,
                                 x=0)
 
+@app.route("/geme_standard", methods=['POST', 'GET'])
+def geme_standard():
+    if request.method == 'POST':
+        komputer_point = int(request.form.get("komputer_point"))
+        gemer_point = int(request.form.get("gemer_point"))
+        x = random.randint(1, 6) + random.randint(1, 6)
+        y = random.randint(1, 6) + random.randint(1, 6)
+        komputer_point += y
+        gemer_point += x
+        if komputer_point > 2001 or gemer_point > 2001:
+            day = datetime.datetime.now().strftime("%d.%m.%Y")
+            file = open("scoreboard.csv", "a")
+            writer = csv.writer(file)
+            writer.writerow((f"gemer = {gemer_point}", f"komputer = {komputer_point}", f"Date : {day}"))
+            file.close()
+            return FINISH_HTML.format(gemer_point=gemer_point, komputer_point=komputer_point)
+
+        return STANDARD_HTML.format(gemer_point=gemer_point, komputer_point=komputer_point, gemer_point_w=gemer_point, komputer_point_w=komputer_point)
+    else:
+        return STANDARD_HTML.format(gemer_point=0, komputer_point=0, gemer_point_w=0, komputer_point_w=0)
 
 
-@app.route("/scoreboard")
+
+
+@app.route("/scoreboard", methods=['POST', 'GET'])
 def scoreboard():
-    file = open("scoreboard.csv", "r")
-    reader = csv.reader(file)
-    result = list(reader)
-    file.close()
+    if request.method == 'POST':
+        comments = request.form["comments"]
+        target = open(comments.txt, 'r')
+        target.write(comments)
+        target.close()
+    else:
+        file = open("scoreboard.csv", "r")
+        reader = csv.reader(file)
+        scoreboard = list(reader)
+        file.close()
 
-    return f"scoreboard <br> {result}"
+        return render_template("scoreboard.html", scoreboard=scoreboard)
 
 if __name__ == "__main__":
     app.run(debug=True)
