@@ -191,9 +191,11 @@ def geme_standard():
 def scoreboard():
     if request.method == 'POST':
         comments = request.form["comments"]
-        target = open(comments.txt, 'r')
-        target.write(comments)
-        target.close()
+        file = open("comments.txt", 'w')
+        file.write(comments)
+        file.close()
+
+        return HELLO_HTML
     else:
         file = open("scoreboard.csv", "r")
         reader = csv.reader(file)
